@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LSP Capital Group | Strategic Modeler</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --lsp-gold: #c5a059; 
+            --lsp-gold-muted: #8e7341;
+            --lsp-bg: #0a0a0a; 
+            --lsp-card: #111111;
+            --lsp-border: #262626; 
+        }
+        body { background: var(--lsp-bg); font-family: 'Inter', sans-serif; color: #e5e5e5; }
+        h1, h2, .serif { font-family: 'Playfair Display', serif; }
+        
+        .lsp-card { background: var(--lsp-card); border: 1px solid var(--lsp-border); border-radius: 2px; }
+        .accounting-input { 
+            background: transparent; 
+            border-bottom: 1px solid var(--lsp-gold-muted); 
+            padding: 12px 0; 
+            width: 100%; 
+            color: var(--lsp-gold); 
+            font-size: 24px; 
+            text-align: right; 
+            outline: none; 
+            transition: all 0.3s ease;
+        }
+        .accounting-input:focus { border-color: var(--lsp-gold); color: white; }
+        
+        .label-lsp { 
+            font-size: 10px; 
+            font-weight: 600; 
+            color: var(--lsp-gold-muted); 
+            text-transform: uppercase; 
+            letter-spacing: 0.15em; 
+            margin-bottom: 8px; 
+            display: block; 
+        }
+        
+        .accretion { border-right: 2px solid var(--lsp-gold); }
+        .btn-gold { border: 1px solid var(--lsp-gold); color: var(--lsp-gold); padding: 4px 12px; font-size: 10px; transition: 0.3s; }
+        .btn-gold:hover { background: var(--lsp-gold); color: black; }
+    </style>
+</head>
+<body class="p-6 md:p-12 max-w-3xl mx-auto pb-32">
+
+    <header class="flex justify-between items-end mb-16 border-b border-white/10 pb-10">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight text-white leading-none">LEWIS SIMPSON PARTNER</h1>
+            <p class="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.4em] mt-3">Capital Group • Private Terminal</p>
+        </div>
+        <div class="text-right">
+            <span class="label-lsp">Projected Terminal Value</span>
+            <p class="text-5xl font-light text-white tracking-tighter serif" id="top-val">£38.38M</p>
+        </div>
+    </header>
+
+    <section class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <div class="lsp-card p-6 accretion">
+            <span class="label-lsp">Adjusted Equity Stake</span>
+            <p class="text-3xl font-semibold text-white" id="stat-adj-own">2.93%</p>
+            <div class="h-1 w-full bg-zinc-900 mt-4"><div class="h-1 bg-white w-1/3"></div></div>
+        </div>
+        <div class="lsp-card p-6">
+            <span class="label-lsp">Multiple on Capital (ROI)</span>
+            <p class="text-3xl font-semibold text-white serif" id="stat-roi">76.8x</p>
+            <p class="text-[10px] text-zinc-500 mt-2 font-bold uppercase tracking-widest" id="basis-display">Cost Basis: £500,000</p>
+        </div>
+    </section>
+
+    <section class="lsp-card p-10 mb-12">
+        <div class="flex justify-between items-center mb-10">
+            <h2 class="text-xl italic text-white">Strategic Tranche Allocation</h2>
+            <button onclick="resetModel()" class="btn-gold uppercase tracking-tighter font-bold">Clear Simulation</button>
+        </div>
+        
+        <div class="space-y-12">
+            <div>
+                <label class="label-lsp">Seed Round Deployment (Max £7M)</label>
+                <input type="text" id="cash-seed" class="accounting-input" placeholder="£0.00" oninput="formatCurrency(this)">
+                <div class="flex justify-between mt-2">
+                    <span class="text-[9px] text-zinc-600 font-bold uppercase">LSP Limit: £7,000,000</span>
+                    <span class="text-[9px] text-gold-muted font-bold text-white" id="seed-share-calc">0 New Shares</span>
+                </div>
+            </div>
+
+            <div>
+                <label class="label-lsp">Bank Round Deployment (Max £60M)</label>
+                <input type="text" id="cash-bank" class="accounting-input" placeholder="£0.00" oninput="formatCurrency(this)">
+                <div class="flex justify-between mt-2">
+                    <span class="text-[9px] text-zinc-600 font-bold uppercase">LSP Limit: £60,000,000</span>
+                    <span class="text-[9px] text-gold-muted font-bold text-white" id="bank-share-calc">0 New Shares</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-16 pt-8 border-t border-zinc-800">
+            <div class="flex justify-between items-center">
+                <span class="label-lsp m-0">Incremental Delta</span>
+                <span class="text-3xl font-bold text-white serif" id="res-delta-val">£0.00M</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="lsp-card p-8 mb-12">
+        <span class="label-lsp">Dilution Step-Function sensitivity</span>
+        <div class="h-48 mt-4">
+            <canvas id="gsChart"></canvas>
+        </div>
+    </section>
+
+    <div id="valuation-ledger" class="space-y-3 mb-24">
+        </div>
+
+    <script>
+        const PRIOR_SHARES = 144092;
+        const PRIOR_BASIS = 500000;
+        const PPS_SEED = 11.68;
+        const PPS_BANK = 58.40;
+        const CAP_SEED = 7000000;
+        const CAP_BANK = 60000000;
+
+        const MODEL_DATA = [
+            { r: "PS Plus (Prior)", pps: 3.47, fd: 2825331 },
+            { r: "Seed Round", pps: 11.68, fd: 3424646 },
+            { r: "Bank Round", pps: 58.40, fd: 4452046 },
+            { r: "Balance 1", pps: 58.40, fd: 4657571 },
+            { r: "Balance 2", pps: 96.64, fd: 4761071 },
+            { r: "Balance 3", pps: 142.77, fd: 4831121 },
+            { r: "Balance 4", pps: 201.79, fd: 4880661 },
+            { r: "Balance 5", pps: 266.39, fd: 4918211 }
+        ];
+
+        let chart;
+
+        function formatCurrency(input) {
+            let raw = input.value.replace(/\D/g, "");
+            if (raw === "") { input.value = ""; refresh(); return; }
+            let n = parseInt(raw) / 100;
+            if(input.id === 'cash-seed' && n > CAP_SEED) n = CAP_SEED;
+            if(input.id === 'cash-bank' && n > CAP_BANK) n = CAP_BANK;
+            input.value = n.toLocaleString('en-GB', { style: 'currency', currency: 'GBP' });
+            refresh();
+        }
+
+        function parseVal(id) {
+            let v = document.getElementById(id).value;
+            return v ? parseFloat(v.replace(/[^\d.]/g, "")) : 0;
+        }
+
+        function refresh() {
+            const seedCash = parseVal('cash-seed');
+            const bankCash = parseVal('cash-bank');
+            const nSeed = Math.floor(seedCash / PPS_SEED);
+            const nBank = Math.floor(bankCash / PPS_BANK);
+            const terminalTotal = PRIOR_SHARES + nSeed + nBank;
+            const totalBasis = PRIOR_BASIS + seedCash + bankCash;
+            const b5 = MODEL_DATA[7];
+            const baseVal = PRIOR_SHARES * b5.pps;
+            const adjVal = terminalTotal * b5.pps;
+
+            document.getElementById('top-val').innerText = "£" + (adjVal/1000000).toFixed(2) + "M";
+            document.getElementById('stat-adj-own').innerText = ((terminalTotal / b5.fd)*100).toFixed(2) + "%";
+            document.getElementById('stat-roi').innerText = (adjVal / totalBasis).toFixed(1) + "x";
+            document.getElementById('basis-display').innerText = "COST BASIS: £" + (totalBasis/1000).toFixed(0) + "K";
+            document.getElementById('res-delta-val').innerText = "£" + ((adjVal - baseVal)/1000000).toFixed(2) + "M";
+            document.getElementById('seed-share-calc').innerText = nSeed.toLocaleString() + " NEW SHARES";
+            document.getElementById('bank-share-calc').innerText = nBank.toLocaleString() + " NEW SHARES";
+
+            const ledger = document.getElementById('valuation-ledger');
+            ledger.innerHTML = '';
+            MODEL_DATA.forEach((d, i) => {
+                let s = (i === 0) ? PRIOR_SHARES : (i === 1 ? PRIOR_SHARES + nSeed : terminalTotal);
+                ledger.innerHTML += `
+                    <div class="lsp-card p-5 flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">${d.r}</p>
+                            <p class="text-xs text-zinc-400 mt-1">Exit Share PPS: £${d.pps.toFixed(2)}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-lg font-semibold text-white">£${(s * d.pps / 1000000).toFixed(2)}M</p>
+                            <p class="text-[9px] font-bold text-zinc-500 uppercase">${((s/d.fd)*100).toFixed(2)}% Stake</p>
+                        </div>
+                    </div>`;
+            });
+
+            chart.data.datasets[1].data = MODEL_DATA.map((d, i) => {
+                let s = (i === 0) ? PRIOR_SHARES : (i === 1 ? PRIOR_SHARES + nSeed : terminalTotal);
+                return (s / d.fd) * 100;
+            });
+            chart.update();
+        }
+
+        function resetModel() {
+            document.getElementById('cash-seed').value = "";
+            document.getElementById('cash-bank').value = "";
+            refresh();
+        }
+
+        const ctx = document.getElementById('gsChart').getContext('2d');
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: MODEL_DATA.map(d => d.r),
+                datasets: [
+                    { data: MODEL_DATA.map(d => (PRIOR_SHARES/d.fd)*100), borderColor: '#333', borderWidth: 1, pointRadius: 0, fill: false },
+                    { data: [], borderColor: '#c5a059', borderWidth: 2, pointBackgroundColor: '#fff', tension: 0.2, fill: false }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#444', font: { size: 8 } } },
+                    y: { grid: { color: '#1a1a1a' }, ticks: { color: '#444', font: { size: 8 } } }
+                }
+            }
+        });
+        refresh();
+    </script>
+</body>
+</html>
