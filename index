@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>LSP Capital Group | Strategic Tranche Modeler</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,7 +14,8 @@
             --lsp-gold-muted: #8e7341;
             --lsp-bg: #050505; 
             --lsp-card: #0c0c0c;
-            --lsp-border: #1a1a1a; 
+            --lsp-border: #1a1a1a;
+            --apple-curve: cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         body { 
@@ -22,113 +23,129 @@
             font-family: 'Inter', sans-serif; 
             color: #d4d4d8; 
             -webkit-font-smoothing: antialiased;
+            touch-action: manipulation;
+            overflow-x: hidden;
         }
         
         .serif { font-family: 'Playfair Display', serif; }
         .mono { font-family: 'JetBrains Mono', monospace; }
 
+        /* Apple Design: Minimalist Card & Animations */
         .lsp-card { 
             background: var(--lsp-card); 
             border: 1px solid var(--lsp-border); 
-            border-radius: 2px;
-            transition: all 0.3s ease;
+            border-radius: 4px;
+            transition: all 0.5s var(--apple-curve);
             position: relative; 
+            opacity: 0;
+            transform: translateY(20px);
         }
         
+        .lsp-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
         .lsp-card:hover {
-            border-color: #262626;
+            border-color: #333;
             background: #0e0e0e;
         }
 
+        /* Input Feedback */
         .accounting-input { 
             background: transparent; 
             border-bottom: 1px solid var(--lsp-border); 
-            padding: 16px 0; 
+            padding: 12px 0; 
             width: 100%; 
             color: var(--lsp-gold); 
             font-family: 'JetBrains Mono', monospace;
-            font-size: 28px; 
+            font-size: clamp(20px, 6vw, 28px); 
             text-align: right; 
             outline: none; 
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.4s var(--apple-curve);
+            border-radius: 0;
         }
         
         .accounting-input:focus { 
             border-color: var(--lsp-gold); 
             color: #fff;
-            background: linear-gradient(to top, rgba(197, 160, 89, 0.05), transparent);
+        }
+
+        /* Subtle Value Change Animation */
+        .value-update {
+            transition: color 0.3s ease, transform 0.3s var(--apple-curve), opacity 0.3s ease;
+        }
+        .value-changing {
+            opacity: 0.7;
+            transform: scale(0.98);
+            color: var(--lsp-gold-light);
         }
 
         .label-lsp { 
-            font-size: 10px; 
+            font-size: clamp(8px, 2.5vw, 10px); 
             font-weight: 700; 
             color: var(--lsp-gold-muted); 
             text-transform: uppercase; 
             letter-spacing: 0.25em; 
-            margin-bottom: 12px; 
+            margin-bottom: 8px; 
             display: block; 
         }
 
+        /* Tooltip refinement */
         .tooltip-container { position: relative; display: inline-block; cursor: help; }
         .tooltip-text {
             visibility: hidden;
-            width: 260px;
-            background-color: #161616;
+            width: 220px;
+            background-color: rgba(22, 22, 22, 0.95);
+            backdrop-filter: blur(10px);
             color: #a1a1aa;
             text-align: left;
             border: 1px solid #333;
-            padding: 14px;
+            padding: 12px;
             position: absolute;
             z-index: 100;
             bottom: 135%;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translateX(-50%) translateY(10px);
             opacity: 0;
-            transition: opacity 0.2s, transform 0.2s;
+            transition: all 0.3s var(--apple-curve);
             font-size: 10px;
-            font-family: 'Inter', sans-serif;
-            text-transform: none;
-            letter-spacing: normal;
-            line-height: 1.5;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.8);
             pointer-events: none;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
         }
-        .tooltip-container:hover .tooltip-text { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(-5px); }
-
-        .accretion-marker { position: relative; }
-        .accretion-marker::before {
-            content: '';
-            position: absolute;
-            left: -1px;
-            top: 20%;
-            height: 60%;
-            width: 3px;
-            background: var(--lsp-gold);
+        
+        .tooltip-container:active .tooltip-text,
+        .tooltip-container:hover .tooltip-text { 
+            visibility: visible; 
+            opacity: 1; 
+            transform: translateX(-50%) translateY(0); 
         }
 
+        /* Interactive Elements */
         .btn-lsp {
             border: 1px solid var(--lsp-gold-muted);
             color: var(--lsp-gold-muted);
             padding: 6px 16px;
-            font-size: 9px;
+            font-size: 8px;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            transition: all 0.3s ease;
+            letter-spacing: 0.15em;
+            transition: all 0.3s var(--apple-curve);
         }
         
-        .btn-lsp:hover {
-            border-color: var(--lsp-gold);
-            color: #fff;
-            background: var(--lsp-gold-muted);
+        .btn-lsp:active { 
+            transform: scale(0.95);
+            background: var(--lsp-gold-muted); 
+            color: #fff; 
         }
 
+        /* Glimmer Overlay */
         .glimmer-overlay {
             position: absolute;
             inset: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.02), transparent);
+            background: linear-gradient(90deg, transparent, rgba(197, 160, 89, 0.03), transparent);
             background-size: 200% 100%;
-            animation: shimmer 5s infinite linear;
+            animation: shimmer 8s infinite linear;
             pointer-events: none;
         }
 
@@ -136,147 +153,148 @@
             0% { background-position: -200% 0; }
             100% { background-position: 200% 0; }
         }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 640px) {
+            .lsp-card { padding: 1.25rem !important; }
+        }
     </style>
 </head>
-<body class="p-6 md:p-16 max-w-4xl mx-auto pb-40">
+<body class="p-4 sm:p-8 md:p-16 max-w-4xl mx-auto pb-40">
 
     <!-- Branding Header -->
-    <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-20 border-b border-white/5 pb-12">
-        <div class="mb-8 md:mb-0">
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 md:mb-20 border-b border-white/5 pb-8 md:pb-12">
+        <div class="mb-4 md:mb-0">
             <div class="flex items-center gap-3 mb-2">
-                <div class="w-8 h-8 border-2 border-gold-muted flex items-center justify-center">
-                    <span class="text-white font-bold text-xs">LSP</span>
+                <div class="w-7 h-7 md:w-8 md:h-8 border-2 border-gold-muted flex items-center justify-center">
+                    <span class="text-white font-bold text-[10px]">LSP</span>
                 </div>
-                <h1 class="text-2xl font-bold tracking-[0.2em] text-white leading-none uppercase">Lewis Simpson Partner</h1>
+                <h1 class="text-lg md:text-2xl font-bold tracking-[0.2em] text-white leading-none uppercase">Lewis Simpson Partner</h1>
             </div>
-            <p class="text-[9px] text-zinc-500 font-bold uppercase tracking-[0.5em] ml-11">Capital Group • Investment Banking Terminal</p>
+            <p class="text-[8px] md:text-[9px] text-zinc-500 font-bold uppercase tracking-[0.5em] ml-10">Capital Group • Banking Terminal</p>
         </div>
-        <div class="text-right">
+        <div class="text-left md:text-right w-full md:w-auto mt-6 md:mt-0">
             <div class="tooltip-container">
                 <span class="label-lsp">TV @ Balance 5 (Terminal)</span>
                 <div class="tooltip-text">
-                    <strong>Terminal Value (TV):</strong> Calculated as Adjusted Shares × Balance 5 Price Per Share (£266.39). <br><br>
-                    <em>Cite: Gordon Growth Method / Exit Multiple at Maturity. Based on FD Registry v13.</em>
+                    <strong>Terminal Value (TV):</strong> Adjusted Shares × £266.39. <br><br>
+                    <em>Cite: Gordon Growth / Exit Multiple v13.</em>
                 </div>
             </div>
-            <p class="text-5xl font-light text-white tracking-tighter serif italic" id="top-val">£0.00M</p>
+            <p class="text-3xl sm:text-4xl md:text-5xl font-light text-white tracking-tighter serif italic value-update" id="top-val">£0.00M</p>
         </div>
     </header>
 
     <!-- Key Metrics Grid -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-16">
-        <div class="lsp-card p-6 accretion-marker">
+    <section class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-8 md:mb-16">
+        <div class="lsp-card p-6 col-span-2 md:col-span-1 border-l-2 border-l-gold" style="transition-delay: 0.1s;">
             <div class="tooltip-container">
                 <span class="label-lsp">Terminal Stake</span>
-                <div class="tooltip-text">
-                    <strong>Equity Ownership:</strong> Percentage of Fully Diluted (FD) share count at terminal state. Assumes no further dilutive events post-Balance 5. <br><br>
-                    <em>Cite: Fully Diluted Share Registry v13.</em>
-                </div>
+                <div class="tooltip-text">Ownership as % of FD Shares at terminal state.</div>
             </div>
-            <p class="text-2xl font-bold text-white mono" id="stat-adj-own">0.00%</p>
+            <p class="text-xl md:text-2xl font-bold text-white mono value-update" id="stat-adj-own">0.00%</p>
         </div>
 
-        <div class="lsp-card p-6">
+        <div class="lsp-card p-6" style="transition-delay: 0.2s;">
             <div class="tooltip-container">
                 <span class="label-lsp">MOIC (Gross)</span>
-                <div class="tooltip-text">
-                    <strong>Multiple of Invested Capital:</strong> Total Realized/Unrealized Value divided by Total Invested Capital. <br><br>
-                    <em>Formula: Terminal Value / Invested Capital. Cite: Standard IB Performance Reporting.</em>
-                </div>
+                <div class="tooltip-text">Terminal Value / Invested Capital.</div>
             </div>
-            <p class="text-2xl font-bold text-white serif italic" id="stat-roi">0.0x</p>
+            <p class="text-xl md:text-2xl font-bold text-white serif italic value-update" id="stat-roi">0.0x</p>
         </div>
 
-        <div class="lsp-card p-6">
+        <div class="lsp-card p-6" style="transition-delay: 0.3s;">
             <div class="tooltip-container">
                 <span class="label-lsp">Implied IRR</span>
-                <div class="tooltip-text">
-                    <strong>Internal Rate of Return:</strong> Annualized rate of return based on a 5-year investment horizon (T0 to B5). <br><br>
-                    <em>Formula: [(MOIC ^ (1/Time)) - 1] * 100. Assume exit at Year 5.</em>
-                </div>
+                <div class="tooltip-text">Annualized return (5-year horizon).</div>
             </div>
-            <p class="text-2xl font-bold text-white mono" id="stat-irr">0.0%</p>
+            <p class="text-xl md:text-2xl font-bold text-white mono value-update" id="stat-irr">0.0%</p>
         </div>
     </section>
 
     <!-- Simulation Controls -->
-    <section class="lsp-card p-10 mb-16 relative">
+    <section class="lsp-card p-10 mb-16 relative overflow-hidden" style="transition-delay: 0.4s;">
         <div class="glimmer-overlay"></div>
-        <div class="flex justify-between items-center mb-12 relative z-10">
-            <h2 class="text-xs font-bold text-zinc-400 uppercase tracking-[0.3em]">Principal Capital Injection (Bank Round)</h2>
-            <button onclick="resetModel()" class="btn-lsp">Reset Transaction</button>
+        <div class="flex justify-between items-center mb-10 relative z-10">
+            <h2 class="text-[9px] md:text-xs font-bold text-zinc-500 uppercase tracking-[0.3em]">Bank Round Allocation</h2>
+            <button onclick="resetModel()" class="btn-lsp">Reset</button>
         </div>
         
-        <div class="space-y-16 relative z-10">
+        <div class="space-y-12 relative z-10">
             <div>
                 <div class="flex justify-between items-end mb-2">
-                    <label class="label-lsp m-0 italic">Net Principal Investment</label>
-                    <span class="text-[10px] text-zinc-600 font-bold mono">@ £58.40 PPS</span>
+                    <label class="label-lsp m-0 italic">Net Principal Deployment</label>
+                    <span class="text-[8px] md:text-[10px] text-zinc-600 font-bold mono">@ £58.40 PPS</span>
                 </div>
-                <input type="text" id="cash-bank" class="accounting-input" placeholder="£0.00" oninput="formatCurrency(this)">
-                <div class="flex justify-between mt-4">
+                <input type="text" id="cash-bank" class="accounting-input" placeholder="£0.00" oninput="formatCurrency(this)" inputmode="numeric">
+                <div class="flex flex-col sm:flex-row justify-between mt-4 gap-2">
                     <div class="tooltip-container">
-                        <span class="text-[9px] text-zinc-700 font-bold uppercase tracking-tighter border-b border-zinc-800">Governance Cap: £54,000,000.00</span>
-                        <div class="tooltip-text">Mandatory firm cap to maintain tranche efficiency and prevent over-concentration in a single series.</div>
+                        <span class="text-[8px] md:text-[9px] text-zinc-700 font-bold uppercase tracking-tighter border-b border-zinc-900">Governance Cap: £54,000,000.00</span>
+                        <div class="tooltip-text">Firm mandated cap per tranche.</div>
                     </div>
-                    <span class="text-[10px] text-white font-bold mono" id="bank-share-calc">+0 Shares</span>
+                    <span class="text-[9px] md:text-[10px] text-white font-bold mono" id="bank-share-calc">+0 Shares</span>
                 </div>
             </div>
         </div>
 
-        <div class="mt-20 pt-10 border-t border-zinc-900 flex justify-between items-center relative z-10">
+        <div class="mt-12 md:mt-20 pt-10 border-t border-zinc-900 flex justify-between items-center relative z-10">
             <div>
                 <div class="tooltip-container">
                     <span class="label-lsp m-0">Net Equity Gain (Delta)</span>
-                    <div class="tooltip-text">Terminal Value minus Invested Principal. Represents total value creation net of principal recovery.</div>
+                    <div class="tooltip-text">Terminal Value minus Principal.</div>
                 </div>
-                <p class="text-[9px] text-zinc-600 font-medium uppercase mt-1">Terminal Liquidity Capture</p>
+                <p class="text-[8px] text-zinc-600 font-medium uppercase mt-1">Terminal Profit Capture</p>
             </div>
-            <span class="text-4xl font-bold text-white serif italic" id="res-delta-val">£0.00M</span>
+            <span class="text-2xl md:text-4xl font-bold text-white serif italic value-update" id="res-delta-val">£0.00M</span>
         </div>
     </section>
 
     <!-- Visualization -->
-    <section class="lsp-card p-10 mb-16">
-        <div class="flex justify-between items-center mb-8">
-            <span class="label-lsp m-0">Step-Function Stake Sensitivity</span>
-            <span class="text-[9px] text-zinc-600 mono">Axis: Stage (T) vs Ownership (%)</span>
-        </div>
-        <div class="h-56 mt-4">
+    <section class="lsp-card p-8 md:p-10 mb-12 md:mb-16" style="transition-delay: 0.5s;">
+        <span class="label-lsp mb-8">Step-Function Sensitivity</span>
+        <div class="h-48 md:h-56 mt-4">
             <canvas id="lspChart"></canvas>
         </div>
     </section>
 
     <!-- Detailed Performance Ledger -->
     <div class="space-y-4 mb-20">
-        <span class="label-lsp px-2">Exit Multiple Analysis by Stage</span>
+        <span class="label-lsp px-2">Exit Multiple Analysis</span>
         <div id="valuation-ledger" class="space-y-3">
             <!-- Populated via JS -->
         </div>
     </div>
 
     <!-- Footer -->
-    <footer class="text-center border-t border-white/5 pt-10">
-        <p class="text-[8px] font-bold uppercase tracking-[0.5em] text-zinc-700 mb-2">Private & Confidential • Lewis Simpson Partner Capital Group</p>
-        <p class="text-[7px] text-zinc-800 max-w-lg mx-auto">Investment projections are based on current market assumptions and the FD Share Registry v13. Past performance is not indicative of future returns. Calculations assume a 60-month terminal horizon.</p>
+    <footer class="text-center border-t border-white/5 pt-12 pb-16">
+        <p class="text-[7px] md:text-[8px] font-bold uppercase tracking-[0.5em] text-zinc-700 mb-2">Private & Confidential • LSP Capital Group</p>
+        <p class="text-[6px] md:text-[7px] text-zinc-800 max-w-xs md:max-w-lg mx-auto leading-relaxed">Investment projections based on market assumptions. FD Registry v13. 60-month horizon.</p>
     </footer>
 
     <script>
-        // CORE MODEL CONSTANTS
         const PPS_BANK = 58.40;
         const CAP_BANK = 54000000; 
         const HORIZON_YEARS = 5; 
 
         const MODEL_DATA = [
-            { r: "Bank Round Entry", pps: 58.40, fd: 4452046 },
+            { r: "Bank Entry", pps: 58.40, fd: 4452046 },
             { r: "Balance 1", pps: 58.40, fd: 4657571 },
             { r: "Balance 2", pps: 96.64, fd: 4761071 },
             { r: "Balance 3", pps: 142.77, fd: 4831121 },
             { r: "Balance 4", pps: 201.79, fd: 4880661 },
-            { r: "Balance 5 (Terminal)", pps: 266.39, fd: 4918211 }
+            { r: "Balance 5", pps: 266.39, fd: 4918211 }
         ];
 
         let chart;
+
+        // Visual feedback for value changes
+        function triggerValueAnim() {
+            const elements = document.querySelectorAll('.value-update');
+            elements.forEach(el => {
+                el.classList.add('value-changing');
+                setTimeout(() => el.classList.remove('value-changing'), 150);
+            });
+        }
 
         function formatCurrency(input) {
             let raw = input.value.replace(/\D/g, "");
@@ -300,6 +318,7 @@
         }
 
         function refresh() {
+            triggerValueAnim();
             const bankCash = parseVal('cash-bank');
             const nBank = Math.floor(bankCash / PPS_BANK);
             const totalBasis = bankCash;
@@ -313,29 +332,29 @@
             document.getElementById('stat-adj-own').innerText = totalBasis > 0 ? ((nBank / bTerminal.fd)*100).toFixed(2) + "%" : "0.00%";
             document.getElementById('stat-roi').innerText = moic.toFixed(1) + "x";
             document.getElementById('stat-irr').innerText = irr.toFixed(1) + "%";
-            document.getElementById('bank-share-calc').innerText = "+" + nBank.toLocaleString() + " SHARES";
+            document.getElementById('bank-share-calc').innerText = "+" + nBank.toLocaleString() + " SH";
             document.getElementById('res-delta-val').innerText = "£" + ((adjVal - totalBasis)/1000000).toFixed(2) + "M";
 
             const ledger = document.getElementById('valuation-ledger');
             ledger.innerHTML = '';
-            MODEL_DATA.forEach((d) => {
+            MODEL_DATA.forEach((d, idx) => {
                 const valAtStage = nBank * d.pps;
                 const stepUp = (d.pps / PPS_BANK);
 
                 ledger.innerHTML += `
-                    <div class="lsp-card p-5 flex justify-between items-center group">
-                        <div>
-                            <p class="text-[10px] font-bold text-white uppercase tracking-widest">${d.r}</p>
-                            <p class="text-[9px] text-zinc-500 mt-1 uppercase mono">Implied Equity Value: £${(d.fd * d.pps / 1000000).toFixed(1)}M</p>
+                    <div class="lsp-card p-5 flex justify-between items-center visible" style="transition-delay: ${idx * 0.05}s">
+                        <div class="flex-grow pr-4">
+                            <p class="text-[9px] md:text-[10px] font-bold text-white uppercase tracking-widest">${d.r}</p>
+                            <p class="text-[8px] md:text-[9px] text-zinc-500 mt-1 uppercase mono">Cap: £${(d.fd * d.pps / 1000000).toFixed(1)}M</p>
                         </div>
-                        <div class="text-right flex items-center gap-10">
-                            <div>
-                                <p class="text-[9px] text-zinc-600 font-bold uppercase mono mb-1">PPS Step-Up</p>
-                                <p class="text-xs font-bold ${stepUp > 1 ? 'text-emerald-500' : 'text-zinc-500'} mono">${stepUp.toFixed(2)}x</p>
+                        <div class="text-right flex flex-row items-center gap-4 md:gap-10">
+                            <div class="hidden sm:block">
+                                <p class="text-[8px] text-zinc-600 font-bold uppercase mono mb-1">Step-Up</p>
+                                <p class="text-[10px] font-bold ${stepUp > 1 ? 'text-emerald-500' : 'text-zinc-500'} mono">${stepUp.toFixed(2)}x</p>
                             </div>
                             <div>
-                                <p class="text-[9px] text-zinc-600 font-bold uppercase mono mb-1">Asset Value</p>
-                                <p class="text-base font-bold text-white mono">£${(valAtStage / 1000000).toFixed(2)}M</p>
+                                <p class="text-[8px] text-zinc-600 font-bold uppercase mono mb-1">Value</p>
+                                <p class="text-sm md:text-base font-bold text-white mono">£${(valAtStage / 1000000).toFixed(2)}M</p>
                             </div>
                         </div>
                     </div>
@@ -355,53 +374,42 @@
             refresh();
         }
 
-        function initChart() {
+        window.onload = function() {
+            // Animate card entries
+            setTimeout(() => {
+                document.querySelectorAll('.lsp-card').forEach(card => card.classList.add('visible'));
+            }, 100);
+
+            const input = document.getElementById('cash-bank');
+            input.value = (CAP_BANK).toLocaleString('en-GB', { style: 'currency', currency: 'GBP' });
+            
             const ctx = document.getElementById('lspChart').getContext('2d');
             chart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: MODEL_DATA.map(d => d.r),
-                    datasets: [
-                        { 
-                            data: [], 
-                            borderColor: '#c5a059', 
-                            borderWidth: 2, 
-                            pointBackgroundColor: '#000',
-                            pointBorderColor: '#c5a059',
-                            pointBorderWidth: 2,
-                            pointRadius: 4,
-                            tension: 0.3, 
-                            fill: false 
-                        }
-                    ]
+                    datasets: [{ 
+                        data: [], 
+                        borderColor: '#c5a059', 
+                        borderWidth: 2, 
+                        pointBackgroundColor: '#000',
+                        pointBorderColor: '#c5a059',
+                        pointRadius: 4,
+                        tension: 0.4, 
+                        fill: false 
+                    }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    animation: { duration: 1500, easing: 'easeOutQuart' },
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: { grid: { display: false }, ticks: { color: '#444', font: { size: 8, family: 'JetBrains Mono' } } },
-                        y: { 
-                            grid: { color: '#111', drawBorder: false }, 
-                            ticks: { 
-                                color: '#444', 
-                                font: { size: 8, family: 'JetBrains Mono' },
-                                callback: function(value) { return value.toFixed(1) + '%'; }
-                            } 
-                        }
+                        x: { grid: { display: false }, ticks: { color: '#444', font: { size: 7, family: 'JetBrains Mono' } } },
+                        y: { grid: { color: '#111', drawBorder: false }, ticks: { color: '#444', font: { size: 7, family: 'JetBrains Mono' } } }
                     }
                 }
             });
-        }
-
-        window.onload = function() {
-            // Set initial value to £54,000,000.00
-            const input = document.getElementById('cash-bank');
-            input.value = (CAP_BANK).toLocaleString('en-GB', { 
-                style: 'currency', currency: 'GBP', minimumFractionDigits: 2 
-            });
-            
-            initChart();
             refresh();
         };
     </script>
